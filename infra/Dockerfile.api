@@ -1,0 +1,25 @@
+FROM python:3.11-slim
+
+# System deps for WeasyPrint + Arabic fonts + ffmpeg
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ffmpeg \
+    libpango-1.0-0 libpangoft2-1.0-0 libpangocairo-1.0-0 \
+    libcairo2 libgdk-pixbuf2.0-0 libffi-dev \
+    fonts-noto-core \
+    wget curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Noto Naskh Arabic font
+RUN mkdir -p /usr/share/fonts/noto && \
+    wget -q "https://github.com/googlefonts/noto-fonts/raw/main/hinted/ttf/NotoNaskhArabic/NotoNaskhArabic-Regular.ttf" \
+    -O /usr/share/fonts/noto/NotoNaskhArabic-Regular.ttf && \
+    fc-cache -fv
+
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+COPY src/ ./src/
+COPY scripts/ ./scripts/
+
+RUN mkdir -p /app/storage/pdfs
