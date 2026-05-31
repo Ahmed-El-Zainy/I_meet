@@ -1,9 +1,9 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir gradio requests python-jose[cryptography]
+RUN pip install --no-cache-dir gradio requests "python-jose[cryptography]"
 
-COPY src/ui/ ./src/ui/
-COPY src/security/ ./src/security/
-COPY src/__init__.py ./src/__init__.py 2>/dev/null || true
+COPY src/ ./src/
+
+CMD ["python", "src/ui/chatbot_ui.py"]

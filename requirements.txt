@@ -16,7 +16,7 @@ cryptography==42.0.7
 celery==5.4.0
 redis==5.0.4
 
-# STT
+# STT / ML (torch installed separately in Dockerfile — CPU wheel)
 faster-whisper==1.0.3
 pyannote.audio==3.3.1
 
@@ -30,10 +30,10 @@ qdrant-client==1.9.1
 
 # Sentiment
 transformers==4.41.1
-torch==2.3.0
 
 # PDF
 weasyprint==62.3
+pydyf==0.10.0
 
 # UI
 gradio==4.36.1

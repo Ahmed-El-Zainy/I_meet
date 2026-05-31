@@ -135,31 +135,25 @@ I_meet/
 git clone <your-repo-url>
 cd I_meet
 
-# 2. Copy the environment template and fill in all values
+# 2. Copy the environment template
 cp .env.example .env
-# Edit .env — see Environment Configuration below
 
-# 3. Prepare sample recordings (see Sample Data Setup)
-#    Place 6 files under data/sample_meetings/
+# 3. Generate secrets, JWT tokens, and CPU-friendly defaults
+python -m scripts.setup_env
+# Set OPENAI_API_KEY and HF_TOKEN in .env before full pipeline runs
 
-# 4. Start all services
-docker compose up --build
+# 4. Prepare sample recordings (see Sample Data Setup)
+python -m scripts.setup_sample_data
 
-# 5. Wait for services to become healthy (~2–3 min on first run; models download on first job)
+# 5. Start all services (use --force-recreate after changing .env)
+docker compose up --build -d
+
+# 6. Wait for services to become healthy (~2–3 min on first run; models download on first job)
 #    Look for "Application startup complete" in the API container logs
 
-# 6. Verify the API is running
+# 7. Verify the API is running
 curl http://localhost:8000/health
 # Expected: {"status":"ok"}
-
-# 7. Generate JWT tokens for sample clients (after stack is up)
-docker compose exec api python -c "
-from src.security.auth import create_token
-print('Client A:', create_token('client_a'))
-print('Client B:', create_token('client_b'))
-"
-# Paste output into .env as CLIENT_A_TOKEN and CLIENT_B_TOKEN, then restart api + ui:
-# docker compose restart api ui
 
 # 8. Open in your browser
 #    Chat UI:    http://localhost:7860
@@ -811,7 +805,7 @@ The writeup covers: architecture diagram, model/tool choices, encryption strateg
 | Worker fails on first job with HuggingFace error | Missing or invalid `HF_TOKEN` | Create token at https://huggingface.co/settings/tokens; accept pyannote model license |
 | API container OOM / worker killed | Whisper large-v3 needs ~10 GB RAM | Set `WHISPER_MODEL=medium` and `WHISPER_DEVICE=cpu` |
 | `SKIP (not found)` in ingest script | Sample files not in expected paths | Follow [Sample Data Setup](#sample-data-setup) |
-| Chat UI returns 401 | JWT tokens not set or expired | Regenerate tokens and update `.env`; restart `api` and `ui` |
+| Chat UI returns 401 | JWT tokens not set or expired | Run `python -m scripts.setup_env`, then `docker compose up -d --force-recreate api worker ui` |
 | First job very slow | Models downloading to `model_cache` volume | Normal on first run; subsequent jobs are faster |
 | PDF Arabic renders as boxes | Font not loaded in container | Rebuild images: `docker compose up --build` |
 | Qdrant healthcheck failing | Container still starting | Wait 30–60 s; check `docker compose ps` |
@@ -861,3 +855,9 @@ Private submission for evaluation. All rights reserved unless otherwise specifie
 <!-- CHECKPOINT id="ckpt_mps9j8i4_e408bi" time="2026-05-30T11:23:55.468Z" note="auto" fixes=0 questions=0 highlights=0 sections="" -->
 
 <!-- CHECKPOINT id="ckpt_mps9w3h1_091sjj" time="2026-05-30T11:33:55.477Z" note="auto" fixes=0 questions=0 highlights=0 sections="" -->
+
+<!-- CHECKPOINT id="ckpt_mpsa8ygt_025xoc" time="2026-05-30T11:43:55.517Z" note="auto" fixes=0 questions=0 highlights=0 sections="" -->
+
+<!-- CHECKPOINT id="ckpt_mpsalteq_pq665e" time="2026-05-30T11:53:55.490Z" note="auto" fixes=0 questions=0 highlights=0 sections="" -->
+
+<!-- CHECKPOINT id="ckpt_mpsayods_yub4gf" time="2026-05-30T12:03:55.504Z" note="auto" fixes=0 questions=0 highlights=0 sections="" -->

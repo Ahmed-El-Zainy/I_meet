@@ -5,14 +5,15 @@ Run inside the API container:
 """
 import os
 import time
+import mimetypes
 import requests
 
 API = os.environ.get("API_BASE_URL", "http://localhost:8000")
 
 SAMPLES = [
-    {"file": "data/sample_meetings/client_a_meeting_1.mp4", "client": "a", "title": "Client A — Meeting 1"},
-    {"file": "data/sample_meetings/client_a_meeting_2.mp4", "client": "a", "title": "Client A — Meeting 2"},
-    {"file": "data/sample_meetings/client_a_meeting_3.mp4", "client": "a", "title": "Client A — Meeting 3"},
+    {"file": "data/sample_meetings/client_a_meeting_1.wav", "client": "a", "title": "Client A — Meeting 1"},
+    {"file": "data/sample_meetings/client_a_meeting_2.wav", "client": "a", "title": "Client A — Meeting 2"},
+    {"file": "data/sample_meetings/client_a_meeting_3.wav", "client": "a", "title": "Client A — Meeting 3"},
     {"file": "data/sample_meetings/client_b_meeting_1.mp4", "client": "b", "title": "Client B — Meeting 1"},
     {"file": "data/sample_meetings/client_b_meeting_2.mp4", "client": "b", "title": "Client B — Meeting 2"},
     {"file": "data/sample_meetings/client_b_meeting_3.mp4", "client": "b", "title": "Client B — Meeting 3"},
@@ -26,18 +27,22 @@ TOKENS = {
 
 def ingest(sample: dict) -> str:
     token = TOKENS[sample["client"]]
+    if not token:
+        raise RuntimeError(f"Missing JWT token for client {sample['client']}. Run scripts/setup_env.py first.")
     client_id = f"client_{sample['client']}"
+    mime, _ = mimetypes.guess_type(sample["file"])
+    mime = mime or "application/octet-stream"
     with open(sample["file"], "rb") as f:
         resp = requests.post(
             f"{API}/meetings/ingest",
             headers={"Authorization": f"Bearer {token}"},
-            files={"recording_file": (os.path.basename(sample["file"]), f, "video/mp4")},
+            files={"recording_file": (os.path.basename(sample["file"]), f, mime)},
             data={
                 "client_id": client_id,
                 "meeting_title": sample["title"],
                 "participants": '["Speaker 1", "Speaker 2"]',
             },
-            timeout=30,
+            timeout=120,
         )
     resp.raise_for_status()
     meeting_id = resp.json()["meeting_id"]
@@ -45,7 +50,7 @@ def ingest(sample: dict) -> str:
     return meeting_id
 
 
-def poll(meeting_id: str, token: str, timeout: int = 1800):
+def poll(meeting_id: str, token: str, timeout: int = 3600):
     headers = {"Authorization": f"Bearer {token}"}
     deadline = time.time() + timeout
     while time.time() < deadline:
@@ -76,7 +81,7 @@ def main():
     print(f"\nPolling {len(jobs)} jobs...")
     for meeting_id, token in jobs:
         ok = poll(meeting_id, token)
-        print(f"  {'✓' if ok else '✗'} {meeting_id}")
+        print(f"  {'OK' if ok else 'FAIL'} {meeting_id}")
 
     print("\nDone.")
 

@@ -43,6 +43,7 @@ def _html(meeting_title: str, meeting_date: str, participants: list[str],
     key_points = "".join(f"<li>{_normalize_arabic(p)}</li>" for p in summary.get("key_discussion_points", []))
     open_qs = "".join(f"<li>{_normalize_arabic(q)}</li>" for q in summary.get("open_questions", []))
     participants_str = ", ".join(participants)
+    overall = sentiment.get("overall", {})
 
     return f"""<!DOCTYPE html>
 <html>
@@ -87,10 +88,10 @@ def _html(meeting_title: str, meeting_date: str, participants: list[str],
 <ul>{open_qs}</ul>
 
 <h2>Sentiment Analysis</h2>
-{_sentiment_svg(sentiment.get("overall", {{}}))}
-<p>Positive: {sentiment.get("overall", {{}}).get("positive", 0):.0%} &nbsp;
-   Neutral: {sentiment.get("overall", {{}}).get("neutral", 0):.0%} &nbsp;
-   Negative: {sentiment.get("overall", {{}}).get("negative", 0):.0%}</p>
+{_sentiment_svg(overall)}
+<p>Positive: {overall.get("positive", 0):.0%} &nbsp;
+   Neutral: {overall.get("neutral", 0):.0%} &nbsp;
+   Negative: {overall.get("negative", 0):.0%}</p>
 
 <h2>Full Transcript</h2>
 <table>

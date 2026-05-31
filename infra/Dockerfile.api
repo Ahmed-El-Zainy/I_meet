@@ -1,10 +1,10 @@
-FROM python:3.11-slim
+FROM python:3.11-slim-bookworm
 
 # System deps for WeasyPrint + Arabic fonts + ffmpeg
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     libpango-1.0-0 libpangoft2-1.0-0 libpangocairo-1.0-0 \
-    libcairo2 libgdk-pixbuf2.0-0 libffi-dev \
+    libcairo2 libgdk-pixbuf-2.0-0 libffi-dev \
     fonts-noto-core \
     wget curl \
     && rm -rf /var/lib/apt/lists/*
@@ -17,9 +17,13 @@ RUN mkdir -p /usr/share/fonts/noto && \
 
 WORKDIR /app
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --timeout 600 --retries 10 \
+    torch==2.3.0+cpu torchaudio==2.3.0+cpu --index-url https://download.pytorch.org/whl/cpu
+RUN pip install --no-cache-dir --timeout 600 --retries 10 -r requirements.txt
 
 COPY src/ ./src/
 COPY scripts/ ./scripts/
+COPY tests/ ./tests/
+COPY conftest.py .
 
-RUN mkdir -p /app/storage/pdfs
+RUN mkdir -p /app/storage/pdfs /app/uploads

@@ -60,7 +60,7 @@ def test_response_includes_citations(monkeypatch):
         "Ahmed will prepare the report. [Meeting: Q1 Planning, 2026-02-14]"
     )
 
-    with patch("src.rag.chatbot.OpenAI", return_value=mock_openai):
+    with patch("openai.OpenAI", return_value=mock_openai):
         import os
         os.environ["LLM_PROVIDER"] = "openai"
         os.environ["OPENAI_API_KEY"] = "test"
@@ -86,7 +86,7 @@ def test_cross_meeting_synthesis(monkeypatch):
     mock_openai = MagicMock()
     mock_openai.chat.completions.create.return_value.choices[0].message.content = "Ahmed has two action items."
 
-    with patch("src.rag.chatbot.OpenAI", return_value=mock_openai):
+    with patch("openai.OpenAI", return_value=mock_openai):
         import os
         os.environ["LLM_PROVIDER"] = "openai"
         os.environ["OPENAI_API_KEY"] = "test"

@@ -22,10 +22,18 @@ def _get_diarizer():
     global _diarize_pipeline
     if _diarize_pipeline is None:
         from pyannote.audio import Pipeline
-        _diarize_pipeline = Pipeline.from_pretrained(
-            "pyannote/speaker-diarization-3.1",
-            use_auth_token=os.environ.get("HF_TOKEN"),
-        )
+        hf_token = os.environ.get("HF_TOKEN")
+        kwargs = {"token": hf_token} if hf_token else {}
+        try:
+            _diarize_pipeline = Pipeline.from_pretrained(
+                "pyannote/speaker-diarization-3.1",
+                **kwargs,
+            )
+        except TypeError:
+            _diarize_pipeline = Pipeline.from_pretrained(
+                "pyannote/speaker-diarization-3.1",
+                use_auth_token=hf_token,
+            )
     return _diarize_pipeline
 
 
@@ -35,13 +43,16 @@ def transcribe(audio_path: str) -> dict[str, Any]:
     Returns transcript dict matching the README output schema.
     """
     model = _get_whisper()
-    diarizer = _get_diarizer()
 
-    # --- Diarization ---
-    import torch
-    diarization = diarizer(audio_path)
-    # Build speaker turn map: list of (start, end, speaker)
-    turns = [(seg.start, seg.end, spk) for seg, _, spk in diarization.itertracks(yield_label=True)]
+    # --- Diarization (optional) ---
+    turns: list[tuple[float, float, str]] = []
+    if os.environ.get("SKIP_DIARIZATION") != "1":
+        try:
+            diarizer = _get_diarizer()
+            diarization = diarizer(audio_path)
+            turns = [(seg.start, seg.end, spk) for seg, _, spk in diarization.itertracks(yield_label=True)]
+        except Exception as exc:
+            print(f"Diarization skipped: {exc}")
 
     # --- Transcription (no forced language — multilingual) ---
     segments_raw, info = model.transcribe(audio_path, beam_size=5, word_timestamps=False)
@@ -58,8 +69,11 @@ def transcribe(audio_path: str) -> dict[str, Any]:
 
     for seg in segments_raw:
         duration = seg.end - seg.start
-        lang = seg.language or info.language
+        lang = getattr(seg, "language", None) or info.language or "unknown"
         lang_seconds[lang] = lang_seconds.get(lang, 0) + duration
+
+        logprob = seg.avg_logprob if seg.avg_logprob is not None else -1.0
+        confidence = round(min(1.0, max(0.0, logprob + 1.0)), 2)
 
         entry: dict[str, Any] = {
             "start": round(seg.start, 2),
@@ -67,9 +81,9 @@ def transcribe(audio_path: str) -> dict[str, Any]:
             "speaker": _assign_speaker(seg.start, seg.end),
             "text": seg.text.strip(),
             "language": lang,
-            "confidence": round(seg.avg_logprob and min(1.0, (seg.avg_logprob + 1.0)), 2),
+            "confidence": confidence,
         }
-        if entry["confidence"] < 0.75:
+        if confidence < 0.75:
             entry["low_confidence"] = True
         segments.append(entry)
 

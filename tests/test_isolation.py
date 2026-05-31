@@ -73,7 +73,7 @@ def test_client_a_cannot_see_client_b(monkeypatch):
     assert result["citations"] == []
 
 
-def test_cross_client_meeting_access_denied(monkeypatch):
+def test_cross_client_meeting_access_denied():
     """API layer: meeting owned by client_a must not be accessible by client_b."""
     from fastapi import HTTPException
     from unittest.mock import MagicMock
@@ -84,9 +84,8 @@ def test_cross_client_meeting_access_denied(monkeypatch):
     mock_meeting.meeting_id = "meeting-001"
 
     mock_db = MagicMock()
-    mock_db.query.return_value.filter.return_value.first.return_value = mock_meeting
 
-    with patch("src.api.dependencies.get_meeting", return_value=mock_meeting):
+    with patch("src.db.crud.get_meeting", return_value=mock_meeting):
         with pytest.raises(HTTPException) as exc:
             verified_meeting("meeting-001", client_id="client_b", db=mock_db)
         assert exc.value.status_code == 403

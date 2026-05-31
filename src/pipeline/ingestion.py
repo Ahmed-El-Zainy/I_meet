@@ -24,7 +24,7 @@ async def ingest_upload(
     meeting_title: str,
     participants: list[str],
     meeting_date: date | None,
-    upload_dir: str = "/tmp/uploads",
+    upload_dir: str = "/app/uploads",
 ) -> dict:
     if _ext(recording_file.filename) not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=400, detail="Unsupported file type")

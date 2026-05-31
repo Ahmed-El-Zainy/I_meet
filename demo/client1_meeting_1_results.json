@@ -1,0 +1,59 @@
+{
+  "source_file": "data/sample_meetings/client_a_meeting_1.wav",
+  "meeting_id": "client1-meeting-1",
+  "client_id": "client_a",
+  "title": "Client 1 — Meeting 1",
+  "duration_seconds": 602,
+  "language_mix": { "ar": 1.0 },
+  "transcript_segments": 250,
+  "transcript_sample": [
+    {
+      "start": 0.0,
+      "end": 11.0,
+      "speaker": "SPEAKER_UNKNOWN",
+      "text": "ماتيشي أحل من المناسبات السايدة والجمعات والأجمل أنك تكون جزء أساسي منها",
+      "language": "ar",
+      "confidence": 0.54
+    },
+    {
+      "start": 11.0,
+      "end": 18.0,
+      "speaker": "SPEAKER_UNKNOWN",
+      "text": "ترق مشاركة الأفراحة تختلف بين الناس وأنا أحب أكملها وأزيانها وطريقة الخاصة",
+      "language": "ar",
+      "confidence": 0.54
+    },
+    {
+      "start": 19.0,
+      "end": 30.0,
+      "speaker": "SPEAKER_UNKNOWN",
+      "text": "سنعت الحلبيات عالم كبيرش أشناص مختلفة ومتعددة في منها الصحي ومنها الصعب",
+      "language": "ar",
+      "confidence": 0.45
+    }
+  ],
+  "summary": {
+    "executive_summary": "Arabic meeting (~10 min) about celebrations, sweets/halabiyat preparation, and baking techniques — especially balancing dough ingredients. 250 transcript segments captured.",
+    "key_discussion_points": [
+      "ماتيشي أحل من المناسبات السايدة والجمعات والأجمل أنك تكون جزء أساسي منها",
+      "ترق مشاركة الأفراحة تختلف بين الناس وأنا أحب أكملها وأزيانها وطريقة الخاصة",
+      "سنعت الحلبيات عالم كبيرش أشناص مختلفة ومتعددة في منها الصحي ومنها الصعب",
+      "لكن لأتقال عملها الواحد يحتاج معرفة وإدراك بإيش موضيفة كل مكوة من مكوة أتاء",
+      "خصوصة لما نتكلام على الخبس"
+    ],
+    "decisions_made": [],
+    "action_items": [],
+    "open_questions": [],
+    "_note": "Fallback summary used — set OPENAI_API_KEY for GPT-4o structured summary"
+  },
+  "sentiment": {
+    "overall": {
+      "positive": 0.32,
+      "neutral": 0.48,
+      "negative": 0.19
+    },
+    "interpretation": "Mostly neutral-to-positive tone throughout the discussion"
+  },
+  "pdf_status": "skipped — WeasyPrint/pydyf version fix pending (pin pydyf==0.10.0 and rebuild)",
+  "chat_ready": "embeddings in progress"
+}

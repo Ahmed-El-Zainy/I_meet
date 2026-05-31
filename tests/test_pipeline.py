@@ -27,13 +27,14 @@ async def test_ingest_unsupported_file_type():
 
 @pytest.mark.asyncio
 async def test_ingest_creates_db_records(tmp_path, monkeypatch):
+    from unittest.mock import AsyncMock
     from src.pipeline.ingestion import ingest_upload
 
     monkeypatch.setenv("FIELD_ENCRYPTION_KEY", KEY)
 
     mock_file = MagicMock()
     mock_file.filename = "meeting.mp4"
-    mock_file.read = MagicMock(return_value=b"fake audio")
+    mock_file.read = AsyncMock(return_value=b"fake audio")
 
     mock_db = MagicMock()
     created = {}
@@ -73,7 +74,7 @@ def test_summarize_returns_required_keys(monkeypatch):
     mock_client = MagicMock()
     mock_client.chat.completions.create.return_value.choices[0].message.content = json.dumps(expected)
 
-    with patch("src.pipeline.summarization.OpenAI", return_value=mock_client):
+    with patch("openai.OpenAI", return_value=mock_client):
         from src.pipeline.summarization import summarize
         result = summarize({"segments": [{"start": 0, "end": 5, "speaker": "S0", "text": "Hello"}]})
 
@@ -107,7 +108,7 @@ def test_sentiment_output_schema(monkeypatch):
 # ── PDF generation ────────────────────────────────────────────────────────────
 
 def test_pdf_generates_bytes(monkeypatch):
-    with patch("src.pipeline.pdf_generator.HTML") as mock_html:
+    with patch("weasyprint.HTML") as mock_html:
         mock_html.return_value.write_pdf.return_value = b"%PDF-1.4 fake"
         from src.pipeline.pdf_generator import generate_pdf
         result = generate_pdf(
